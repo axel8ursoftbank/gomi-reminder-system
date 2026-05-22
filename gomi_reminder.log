@@ -1,0 +1,48 @@
+2026-05-09 23:04:20,761 - WARNING - Alexa通知初期化: 設定ファイルが見つかりません: C:\Users\user\gomi_reminder_system\config.json
+config.jsonの作成方法については、setup_alexa.mdを参照してください
+2026-05-09 23:04:20,764 - INFO - 1回のテスト実行を開始
+2026-05-09 23:04:20,764 - INFO - テスト実行完了
+2026-05-10 01:05:01,179 - INFO - ============================================================
+2026-05-10 01:05:01,180 - INFO - ゴミ出し日程LINE通知システムを起動
+2026-05-10 01:05:01,182 - INFO - モード: test
+2026-05-10 01:05:01,182 - INFO - ============================================================
+2026-05-10 01:05:01,183 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-10 01:05:01,184 - INFO - ジョブ登録: 毎日 18:00 にチェック実行
+2026-05-10 01:05:01,185 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-10 01:05:01,185 - INFO - ジョブ登録: 毎日 19:00 にチェック実行
+2026-05-10 01:05:01,186 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-10 01:05:01,186 - INFO - ジョブ登録: 毎日 20:00 にチェック実行
+2026-05-10 01:05:01,187 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-10 01:05:01,187 - INFO - ジョブ登録: 毎日 21:00 にチェック実行
+2026-05-10 01:05:01,188 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-10 01:05:01,189 - INFO - ジョブ登録: 毎日 22:00 にチェック実行
+2026-05-10 01:05:01,190 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-10 01:05:01,190 - INFO - ジョブ登録: 毎日 23:00 にチェック実行
+2026-05-10 01:05:01,196 - INFO - Added job "ゴミ日程チェック (18:00)" to job store "default"
+2026-05-10 01:05:01,197 - INFO - Added job "ゴミ日程チェック (19:00)" to job store "default"
+2026-05-10 01:05:01,197 - INFO - Added job "ゴミ日程チェック (20:00)" to job store "default"
+2026-05-10 01:05:01,198 - INFO - Added job "ゴミ日程チェック (21:00)" to job store "default"
+2026-05-10 01:05:01,199 - INFO - Added job "ゴミ日程チェック (22:00)" to job store "default"
+2026-05-10 01:05:01,199 - INFO - Added job "ゴミ日程チェック (23:00)" to job store "default"
+2026-05-10 01:05:01,200 - INFO - Scheduler started
+2026-05-10 01:05:01,203 - INFO - スケジューラーが開始されました
+2026-05-10 01:20:47,819 - INFO - 1回のテスト実行を開始
+2026-05-10 01:20:47,821 - INFO - 明日のゴミ: 燃やすごみ
+2026-05-10 01:20:47,822 - INFO - テスト実行完了
+2026-05-10 01:24:00,568 - INFO - 1回のテスト実行を開始
+2026-05-10 01:24:00,570 - INFO - 明日のゴミ: 燃やすごみ
+2026-05-10 01:24:00,570 - INFO - テスト実行完了
+2026-05-10 01:25:36,382 - INFO - 1回のテスト実行を開始
+2026-05-10 01:25:36,382 - INFO - 明日のゴミ: 燃やすごみ
+2026-05-10 01:25:36,383 - INFO - テスト実行完了
+2026-05-10 01:36:40,117 - INFO - 1回のテスト実行を開始
+2026-05-10 01:36:40,119 - INFO - 明日のゴミ: 燃やすごみ
+2026-05-10 01:36:40,119 - INFO - テスト実行完了
+2026-05-10 01:41:08,895 - INFO - 1回のテスト実行を開始
+2026-05-10 01:41:08,897 - INFO - 明日のゴミ: 燃やすごみ
+2026-05-10 01:41:09,370 - ERROR - LINE通知送信失敗: {"message":"The property, 'to', in the request body is invalid (line: -, column: -)"}
+2026-05-10 01:41:09,374 - INFO - テスト実行完了
+2026-05-10 01:52:31,346 - INFO - 1回のテスト実行を開始
+2026-05-10 01:52:31,348 - INFO - 明日のゴミ: 燃やすごみ
+2026-05-10 01:52:31,797 - INFO - LINE通知送信完了: 明日は燃やすごみの日です
+2026-05-10 01:52:31,801 - INFO - テスト実行完了
