@@ -31,16 +31,41 @@ class LineNotifier:
         Args:
             config_file: 設定ファイルのパス
         """
-        self.config_file = config_file or r"C:\Users\user\gomi_reminder_system\config.json"
+        _base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_file = config_file or os.path.join(_base_dir, 'config.json')
         self.config = self._load_config()
 
     def _load_config(self) -> dict:
         """
-        設定ファイルから認証情報を読み込む
+        設定ファイルまたは環境変数から認証情報を読み込む
+        GitHub Actions では環境変数から読み込む
 
         Returns:
             設定情報の辞書
         """
+        # 環境変数から読み込む（GitHub Actions用）
+        env_token = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
+        env_user_ids = os.environ.get('LINE_USER_IDS')
+
+        if env_token:
+            logger.info("環境変数から設定を読み込みました（GitHub Actions モード）")
+            config = {'line_channel_access_token': env_token}
+
+            if env_user_ids:
+                # JSON配列形式 ["U123...", "U456..."] をパース
+                try:
+                    user_ids = json.loads(env_user_ids)
+                    config['line_user_ids'] = user_ids
+                    logger.info(f"LINE_USER_IDS (JSON配列): {len(user_ids)}人")
+                except json.JSONDecodeError:
+                    # カンマ区切り形式 "U123...,U456..." の場合
+                    user_ids = [uid.strip() for uid in env_user_ids.split(',') if uid.strip()]
+                    config['line_user_ids'] = user_ids
+                    logger.info(f"LINE_USER_IDS (カンマ区切り): {len(user_ids)}人")
+
+            return config
+
+        # 環境変数がなければ config.json から読み込む（ローカル実行用）
         if not os.path.exists(self.config_file):
             raise FileNotFoundError(
                 f"設定ファイルが見つかりません: {self.config_file}\n"
@@ -48,6 +73,7 @@ class LineNotifier:
             )
 
         with open(self.config_file, 'r', encoding='utf-8') as f:
+            logger.info(f"config.json から設定を読み込みました")
             return json.load(f)
 
     def send_message(self, message: str, test_mode: bool = False) -> bool:
@@ -131,6 +157,7 @@ class LineNotifier:
             成功したかどうか
         """
         if not garbage_types:
+            logger.info("通知対象のゴミがありません")
             print("通知対象のゴミがありません")
             return False
 

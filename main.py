@@ -22,14 +22,20 @@ if sys.stdout.encoding != 'utf-8':
 from check_schedule import ScheduleChecker
 from line_notifier import LineNotifier
 
-# ロギング設定
+# ロギング設定（スクリプトがあるフォルダにログを保存）
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_log_file = os.path.join(_script_dir, 'gomi_reminder.log')
+
+_handlers = [logging.StreamHandler()]
+try:
+    _handlers.append(logging.FileHandler(_log_file, encoding='utf-8'))
+except Exception:
+    pass  # GitHub Actions などでファイル書き込みできない場合はスキップ
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(r"C:\Users\user\gomi_reminder_system\gomi_reminder.log"),
-        logging.StreamHandler()
-    ]
+    handlers=_handlers
 )
 logger = logging.getLogger(__name__)
 
@@ -48,10 +54,10 @@ class GomiReminderScheduler:
         self.scheduler = BackgroundScheduler()
 
         # チェッカー初期化
+        _base_dir = os.path.dirname(os.path.abspath(__file__))
+        _cache_path = os.path.join(_base_dir, 'schedule_cache.json')
         try:
-            self.schedule_checker = ScheduleChecker(
-                r"C:\Users\user\gomi_reminder_system\schedule_cache.json"
-            )
+            self.schedule_checker = ScheduleChecker(_cache_path)
         except Exception as e:
             logger.error(f"スケジュールチェッカー初期化エラー: {e}")
             self.schedule_checker = None

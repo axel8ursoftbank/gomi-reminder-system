@@ -122,10 +122,15 @@ class ScheduleChecker:
         return messages
 
 
-def main():
-    """メイン処理"""
+def main(test_date_str: str = None):
+    """メイン処理
 
-    schedule_json = r"C:\Users\user\gomi_reminder_system\schedule_cache.json"
+    Args:
+        test_date_str: テスト用の日付文字列 (例: '2026-05-24')
+    """
+
+    _base_dir = os.path.dirname(os.path.abspath(__file__))
+    schedule_json = os.path.join(_base_dir, 'schedule_cache.json')
 
     try:
         checker = ScheduleChecker(schedule_json)
@@ -134,11 +139,18 @@ def main():
         print("ゴミ出し日程チェック")
         print("="*50)
 
-        # 明日のゴミをチェック
-        tomorrow = datetime.now() + timedelta(days=1)
-        has_garbage, garbage_types = checker.check_tomorrow()
+        # テスト日付が指定されている場合はそれを使用
+        if test_date_str:
+            today = datetime.strptime(test_date_str, '%Y-%m-%d')
+            tomorrow = today + timedelta(days=1)
+            has_garbage, garbage_types = checker.check_date(tomorrow)
+        else:
+            # 明日のゴミをチェック
+            today = datetime.now()
+            tomorrow = today + timedelta(days=1)
+            has_garbage, garbage_types = checker.check_tomorrow()
 
-        print(f"\n今日: {datetime.now().strftime('%Y年%m月%d日（%A）')}")
+        print(f"\n今日: {today.strftime('%Y年%m月%d日（%A）')}")
         print(f"明日: {tomorrow.strftime('%Y年%m月%d日（%A）')}")
 
         if has_garbage:
@@ -167,5 +179,10 @@ def main():
 
 
 if __name__ == '__main__':
-    has_garbage, messages = main()
+    test_date = None
+    if len(sys.argv) > 1:
+        test_date = sys.argv[1]
+        print(f"[テストモード] 日付を指定: {test_date}\n")
+
+    has_garbage, messages = main(test_date)
     sys.exit(0)
