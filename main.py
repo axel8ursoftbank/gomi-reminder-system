@@ -176,12 +176,13 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"{"="*60}")
-    print(f"ゴミ出し日程Alexa通知システム")
-    print(f"{"="*60}")
+    separator = "=" * 60
+    print(separator)
+    print("ゴミ出し日程Alexa通知システム")
+    print(separator)
     print(f"実行モード: {args.mode}")
     print(f"テスト実行: {args.once}")
-    print(f"{"="*60}\n")
+    print(separator + "\n")
 
     # スケジューラー作成と実行
     scheduler = GomiReminderScheduler(config_mode=args.mode)
