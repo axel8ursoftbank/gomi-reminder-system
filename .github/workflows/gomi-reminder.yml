@@ -20,6 +20,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Check secrets (diagnostic)
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_IDS: ${{ secrets.LINE_USER_IDS }}
+        run: |
+          python -c "import os; t=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN',''); u=os.environ.get('LINE_USER_IDS',''); print('TOKEN length:', len(t)); print('USER_IDS length:', len(u)); print('USER_IDS first char:', repr(u[:1])); print('USER_IDS last char:', repr(u[-1:]))"
+
       - name: Run gomi reminder
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}

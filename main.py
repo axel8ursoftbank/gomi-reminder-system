@@ -72,11 +72,14 @@ class GomiReminderScheduler:
     def check_and_notify(self):
         """
         スケジュール確認と通知実行
+
+        Returns:
+            bool: 正常終了したか（通知失敗時は False）
         """
         try:
             if not self.schedule_checker:
-                logger.warning("スケジュールチェッカーが初期化されていません")
-                return
+                logger.error("スケジュールチェッカーが初期化されていません")
+                return False
 
             # 明日のゴミをチェック
             has_garbage, garbage_types = self.schedule_checker.check_tomorrow()
@@ -84,25 +87,38 @@ class GomiReminderScheduler:
             if has_garbage:
                 logger.info(f"明日のゴミ: {', '.join(garbage_types)}")
 
-                if self.line_notifier:
-                    # テストモードかどうか判定
-                    test_mode = (self.config_mode == 'test')
-
-                    # LINE通知送信
-                    self.line_notifier.send_garbage_reminder(
-                        garbage_types,
-                        test_mode=test_mode
+                if not self.line_notifier:
+                    logger.error(
+                        "LINE通知が利用できません（認証情報の読み込みに失敗）。"
+                        "GitHub Secrets の LINE_CHANNEL_ACCESS_TOKEN と "
+                        "LINE_USER_IDS が正しく設定されているか確認してください"
                     )
-                else:
-                    logger.warning("LINE通知が利用できません")
+                    return False
+
+                # テストモードかどうか判定
+                test_mode = (self.config_mode == 'test')
+
+                # LINE通知送信
+                success = self.line_notifier.send_garbage_reminder(
+                    garbage_types,
+                    test_mode=test_mode
+                )
+                if not success:
+                    logger.error("LINE通知の送信に失敗しました")
+                    return False
+
+                logger.info("LINE通知の送信に成功しました")
 
             else:
-                logger.debug("明日はゴミ出し日ではありません")
+                logger.info("明日はゴミ出し日ではありません（通知なし）")
+
+            return True
 
         except Exception as e:
             logger.error(f"スケジュール確認エラー: {e}")
             import traceback
             traceback.print_exc()
+            return False
 
     def start(self):
         """
@@ -150,8 +166,11 @@ class GomiReminderScheduler:
         1回だけ実行（テスト用）
         """
         logger.info("1回のテスト実行を開始")
-        self.check_and_notify()
+        success = self.check_and_notify()
         logger.info("テスト実行完了")
+        if not success:
+            logger.error("処理が正常に完了しませんでした（exit 1）")
+            sys.exit(1)
 
 
 def main():
