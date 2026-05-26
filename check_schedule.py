@@ -7,13 +7,22 @@ JSONキャッシュから明日のゴミ出し情報を判定
 
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Tuple
 import os
 
 # UTF-8 encoding対応
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
+
+# 日本標準時（JST = UTC+9）
+# GitHub Actions のサーバーはUTCで動くため、明示的にJSTで日付を計算する
+JST = timezone(timedelta(hours=9))
+
+
+def now_jst() -> datetime:
+    """現在の日本時間を返す（実行環境のタイムゾーンに依存しない）"""
+    return datetime.now(JST)
 
 
 class ScheduleChecker:
@@ -46,12 +55,12 @@ class ScheduleChecker:
 
     def check_tomorrow(self) -> Tuple[bool, List[str]]:
         """
-        明日のゴミ出し情報を確認
+        明日のゴミ出し情報を確認（日本時間基準）
 
         Returns:
             (ゴミ出しがあるか, ゴミの種類リスト)
         """
-        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow = now_jst() + timedelta(days=1)
         return self.check_date(tomorrow)
 
     def check_date(self, target_date: datetime) -> Tuple[bool, List[str]]:
@@ -145,8 +154,8 @@ def main(test_date_str: str = None):
             tomorrow = today + timedelta(days=1)
             has_garbage, garbage_types = checker.check_date(tomorrow)
         else:
-            # 明日のゴミをチェック
-            today = datetime.now()
+            # 明日のゴミをチェック（日本時間基準）
+            today = now_jst()
             tomorrow = today + timedelta(days=1)
             has_garbage, garbage_types = checker.check_tomorrow()
 
