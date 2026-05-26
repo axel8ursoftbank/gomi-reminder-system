@@ -35,6 +35,63 @@ class LineNotifier:
         self.config_file = config_file or os.path.join(_base_dir, 'config.json')
         self.config = self._load_config()
 
+    @staticmethod
+    def _normalize_user_ids(raw) -> list:
+        """
+        さまざまな形式のユーザーID入力を、クリーンなリストに正規化する
+
+        対応形式:
+          - JSON配列:        ["U123", "U456"]
+          - JSON文字列:      "U123"
+          - 素の文字列:      U123
+          - カンマ区切り:    U123,U456
+          - すでにリスト:    ["U123"]
+
+        Returns:
+            ユーザーIDのリスト（前後の空白・引用符を除去済み）
+        """
+        # すでにリストならそのまま使う
+        if isinstance(raw, list):
+            candidates = raw
+        elif isinstance(raw, str):
+            text = raw.strip()
+            parsed = None
+            try:
+                parsed = json.loads(text)
+            except (json.JSONDecodeError, ValueError):
+                parsed = None
+
+            if isinstance(parsed, list):
+                candidates = parsed
+            elif isinstance(parsed, str):
+                # JSON文字列リテラル "U123" -> 単一要素
+                candidates = [parsed]
+            else:
+                # 素の文字列。カンマ区切りの可能性も考慮
+                candidates = text.split(',')
+        else:
+            candidates = [raw]
+
+        # 各要素を文字列化し、前後の空白・引用符・括弧を除去
+        cleaned = []
+        for item in candidates:
+            s = str(item).strip().strip('"').strip("'").strip()
+            if s:
+                cleaned.append(s)
+
+        # LINEのユーザーIDは 'U' で始まる。妥当そうなものだけ残す
+        valid = [s for s in cleaned if s.startswith('U') and len(s) > 10]
+
+        if not valid and cleaned:
+            # 検証で全部はじかれた場合は警告を出しつつ元の値を返す
+            logger.warning(
+                f"ユーザーIDの形式が不正な可能性があります: {cleaned}. "
+                "LINEのユーザーIDは 'U' から始まる33文字程度の文字列です"
+            )
+            return cleaned
+
+        return valid
+
     def _load_config(self) -> dict:
         """
         設定ファイルまたは環境変数から認証情報を読み込む
@@ -49,19 +106,12 @@ class LineNotifier:
 
         if env_token:
             logger.info("環境変数から設定を読み込みました（GitHub Actions モード）")
-            config = {'line_channel_access_token': env_token}
+            config = {'line_channel_access_token': env_token.strip()}
 
             if env_user_ids:
-                # JSON配列形式 ["U123...", "U456..."] をパース
-                try:
-                    user_ids = json.loads(env_user_ids)
-                    config['line_user_ids'] = user_ids
-                    logger.info(f"LINE_USER_IDS (JSON配列): {len(user_ids)}人")
-                except json.JSONDecodeError:
-                    # カンマ区切り形式 "U123...,U456..." の場合
-                    user_ids = [uid.strip() for uid in env_user_ids.split(',') if uid.strip()]
-                    config['line_user_ids'] = user_ids
-                    logger.info(f"LINE_USER_IDS (カンマ区切り): {len(user_ids)}人")
+                user_ids = self._normalize_user_ids(env_user_ids)
+                config['line_user_ids'] = user_ids
+                logger.info(f"LINE_USER_IDS: {len(user_ids)}人 -> {user_ids}")
 
             return config
 
@@ -90,13 +140,19 @@ class LineNotifier:
         channel_access_token = self.config.get('line_channel_access_token')
 
         # 複数ユーザー（line_user_ids）と単数ユーザー（line_user_id）の両方に対応
-        user_ids = self.config.get('line_user_ids') or [self.config.get('line_user_id')]
+        raw_user_ids = self.config.get('line_user_ids') or self.config.get('line_user_id')
+
+        # 文字列が1文字ずつバラバラに送られるバグを防ぐため、必ず正規化する
+        user_ids = self._normalize_user_ids(raw_user_ids) if raw_user_ids else []
 
         if not channel_access_token:
-            raise ValueError("line_channel_access_token が config.json に設定されていません")
+            raise ValueError("line_channel_access_token が設定されていません")
 
-        if not user_ids or all(uid is None for uid in user_ids):
-            raise ValueError("line_user_ids または line_user_id が config.json に設定されていません")
+        if not user_ids:
+            raise ValueError(
+                "有効な line_user_ids が設定されていません。"
+                "'U' から始まるLINEユーザーIDを設定してください"
+            )
 
         if test_mode:
             print(f"[テストモード] LINE通知送信")
