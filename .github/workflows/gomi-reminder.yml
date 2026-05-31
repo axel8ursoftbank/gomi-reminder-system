@@ -2,7 +2,10 @@ name: Gomi Reminder
 
 on:
   schedule:
-    - cron: '9 9 * * *'
+    # GitHub Actions の cron は UTC 基準。さらに混雑時は数時間遅延する。
+    # 03:30 UTC = 日本時間 12:30。最大10時間遅れても 22:30 JST までに収まり、
+    # 「前日のうちに」確実に配信される（深夜にズレて日付が変わるのを防ぐ）。
+    - cron: '30 3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -19,13 +22,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Check secrets (diagnostic)
-        env:
-          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_IDS: ${{ secrets.LINE_USER_IDS }}
-        run: |
-          python -c "import os; t=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN',''); u=os.environ.get('LINE_USER_IDS',''); print('TOKEN length:', len(t)); print('USER_IDS length:', len(u)); print('USER_IDS first char:', repr(u[:1])); print('USER_IDS last char:', repr(u[-1:]))"
 
       - name: Run gomi reminder
         env:
